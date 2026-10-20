@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: swaplook
+      POSTGRES_PASSWORD: swaplook_local
+      POSTGRES_DB: swaplook
+    ports:
+      - "127.0.0.1:5548:5432"
+    volumes:
+      - swaplook_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swaplook -d swaplook"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+  app:
+    profiles: [app]
+    build: .
+    environment:
+      DATABASE_URL: postgres://swaplook:swaplook_local@db:5432/swaplook?sslmode=disable
+      MERCHANT_TOKEN: ${MERCHANT_TOKEN:-}
+      APP_ORIGIN: ${CONTAINER_APP_ORIGIN:-http://127.0.0.1:8088}
+      COOKIE_SECURE: "false"
+      RENDERER_MODE: ${RENDERER_MODE:-simulator}
+      YOUCAM_API_KEY: ${YOUCAM_API_KEY:-}
+      DEMO_MODELS_DIR: ${CONTAINER_DEMO_MODELS_DIR:-}
+      PREVIEW_DAILY_LIMIT: ${PREVIEW_DAILY_LIMIT:-25}
+      PREVIEW_TOTAL_LIMIT: ${PREVIEW_TOTAL_LIMIT:-150}
+      PREVIEW_CLIENT_DAILY_LIMIT: ${PREVIEW_CLIENT_DAILY_LIMIT:-5}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+    ports:
+      - "127.0.0.1:8088:8088"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - swaplook_images:/app/data/images
+      - ./.data/garments:/app/data/garments:ro
+      - ./.data/models:/app/data/models:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    init: true
+volumes:
+  swaplook_pg:
+  swaplook_images:

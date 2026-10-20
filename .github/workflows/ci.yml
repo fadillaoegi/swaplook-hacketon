@@ -1,0 +1,58 @@
+name: SwapLook checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: swaplook
+          POSTGRES_PASSWORD: ci_database_fixture
+          POSTGRES_DB: swaplook_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U swaplook -d swaplook_ci"
+          --health-interval 3s --health-timeout 3s --health-retries 15
+    env:
+      TEST_DATABASE_URL: postgres://swaplook:ci_database_fixture@127.0.0.1:5432/swaplook_ci?sslmode=disable
+      E2E_DATABASE_URL: postgres://swaplook:ci_database_fixture@127.0.0.1:5432/swaplook_ci?sslmode=disable
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Audit repository contents and ignored private files
+        run: make repo-audit
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: swaplook_BE/go.mod
+          cache-dependency-path: swaplook_BE/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Install frontend dependencies
+        run: |
+          npm install --global pnpm@11.1.3
+          pnpm --dir swaplook_FE install --frozen-lockfile
+      - name: Domain, HTTP, provider contracts and real PostgreSQL tests
+        working-directory: swaplook_BE
+        run: |
+          go test -race -v ./...
+          go vet ./...
+      - name: Frontend DOM behavior
+        run: pnpm --dir swaplook_FE test
+      - name: Install test browser
+        working-directory: swaplook_FE
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build and run browser flows against Go and PostgreSQL
+        run: make e2e
+      - name: Verify container packaging
+        run: docker build --tag swaplook-ci .

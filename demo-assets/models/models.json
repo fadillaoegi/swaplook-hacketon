@@ -1,0 +1,5 @@
+[
+  {"id": "model-a", "name": "Model A", "note": "AI-generated fictional person · YouCam text-to-image", "file": "model-a.png"},
+  {"id": "model-b", "name": "Model B", "note": "AI-generated fictional person · YouCam text-to-image", "file": "model-b.png"},
+  {"id": "model-c", "name": "Model C", "note": "AI-generated fictional person · YouCam text-to-image", "file": "model-c.png"}
+]

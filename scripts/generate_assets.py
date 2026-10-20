@@ -1,0 +1,15 @@
+from pathlib import Path
+colors=['#e5deca','#e9e2d1','#e4dfcd','#9aab8d','#aebec5','#f1eee4','#b97b60','#46494a','#d7ada8','#8d9a71','#e3d5bc','#7f99ae']
+root=Path('swaplook_FE/public/catalog')
+for i,color in enumerate(colors,1):
+ sku=f'SL-{i:03}'
+ # Original vector garments: demo assets, authored here, no third-party photography.
+ striped=''.join(f'<path d="M{x} 100v280" stroke="#e9e8dd" stroke-width="4" opacity=".65"/>' for x in range(80,290,15)) if i==5 else ''
+ garment=f'''<g filter="url(#shadow)"><path d="M153 91q27 18 54 0l43 14 53 63-34 36-28-28 8 173q-67 11-138 0l8-173-28 28-34-36 53-63Z" fill="url(#cloth)" stroke="#746f5b" stroke-opacity=".25" stroke-width="1.3"/>{striped}<path d="m153 91-25 29 31 37 21-36 21 36 31-37-25-29q-26 18-54 0" fill="{color}" stroke="#7c7766" stroke-opacity=".3"/><path d="M180 123v223" stroke="#948b76" stroke-opacity=".38"/><path d="m121 175-10 173m130-173 8 173M110 106l18 14m104 0 18-14" fill="none" stroke="#817b68" stroke-opacity=".24"/><path d="m137 174-6 150m89-150 10 148m-72-167-9 172m58-172 9 170" fill="none" stroke="#fff" stroke-width="5" opacity=".15"/><path d="m145 109 16 31m54-31-14 31" fill="none" stroke="#fff" stroke-width="2" opacity=".25"/>'''+''.join(f'<circle cx="184" cy="{y}" r="2.2" fill="#f9f5e8" stroke="#958c76" stroke-width=".5"/>' for y in range(165,335,32))+f'''<path d="M111 340q69 9 138 0M61 165l31 32m177 0 30-32" fill="none" stroke="#8e826b" opacity=".25"/></g>'''
+ defs=f'''<defs><linearGradient id="cloth" x1="0" y1="0" x2="1" y2=".5"><stop stop-color="{color}"/><stop offset=".48" stop-color="{color}"/><stop offset="1" stop-color="{color}" stop-opacity=".85"/></linearGradient><filter id="shadow" x="-30%" y="-20%" width="170%" height="170%"><feDropShadow dx="6" dy="13" stdDeviation="9" flood-color="#4c4a2c" flood-opacity=".15"/></filter></defs>'''
+ svg=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 440" role="img" aria-label="Original demo top illustration {sku}">{defs}{garment}</svg>'
+ (root/f'{sku}.svg').write_text(svg)
+ # Deliberately illustrated mannequin fixture; not compositing a personal photo.
+ body='''<ellipse cx="180" cy="418" rx="94" ry="9" fill="#6d735c" opacity=".1"/><path d="m145 298-5 112h32l9-104 10 104h32l-9-112" fill="#807f6a"/><path d="M158 56v38q22 20 44 0V56" fill="#c3a087"/><ellipse cx="180" cy="48" rx="28" ry="37" fill="#cfb29c"/><path d="M153 49q-12-58 27-47 37-8 28 48l-8-24q-17 3-34-3Z" fill="#6c6050"/><path d="m111 170-20 138q-1 14 12 15 9 1 12-12l18-115m94 0 18 115q3 13 12 12 13-1 12-15l-20-138" fill="#c3a087"/>'''
+ preview=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 460" role="img" aria-label="Simulator illustration only">{defs}<rect width="360" height="460" fill="#eceee3"/>{body}<g transform="translate(35 17) scale(.805)">{garment}</g><text x="180" y="446" text-anchor="middle" font-size="8" fill="#6f7c59" font-family="sans-serif" letter-spacing="2">ILLUSTRATION · NO AI GENERATION</text></svg>'
+ (root/f'preview-{sku}.svg').write_text(preview)
